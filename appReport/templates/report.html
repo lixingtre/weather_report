@@ -1,0 +1,56 @@
+{% load static %}
+
+{% block headlink %}
+<link href='{% static "bootstrap.min.css"%}' rel="stylesheet">
+<link href='{% static "main.css" %}' rel="stylesheet">
+<script>
+    function checkForm(){  
+        $(".btn-primary").attr("disabled","disabled");
+    }
+</script>
+{% endblock %}
+
+{% block divcontent %}
+<div style="min-width:460px;" class="center" id="divcontent">
+    <div class="ch-container login-box">
+        <div class="row">
+            <div class="row">
+                <div class="col-md-12 login-header" style="text-align:left;">
+                    <span>weather report API</span>
+                </div>
+            </div><!--/row-->
+            <hr style="border:1px solid white">
+            <div class="row">
+                <div>
+                    <form class="form-horizontal" action="login_post" method="post" onsubmit="checkForm()">
+                        <fieldset style="text-align:left;padding-left:15px;padding-right:25px;">
+                    {% if errormessage %}
+                    <div class="alert alert-danger" style="text-align:left;margin-bottom:5px;padding:5px;">{{errormessage}}</div>
+                    {% endif %}
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-user red"></i></span>
+                        <input type="text" name="tUser" class="form-control" placeholder="city name">
+                    </div>
+                    <div class="clearfix"></div><br>
+
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-lock red"></i>{{report_result}}</span>
+                        <input type="text" id="deviceTxt" name="device" style="display: none;">
+                    </div>
+                    <div class="clearfix"></div>
+
+                    <p style="text-align:center; margin-top:0px;">
+                        <button type="submit" class="btn btn-primary">submit</button>
+                    </p>
+                    <div style="text-align:center;color:white;">
+                        <br></br>
+                    </div>
+                        </fieldset>
+                    </form>
+                </div>
+                <!--/span-->
+            </div><!--/row-->
+        </div><!--/fluid-row-->
+    </div>
+</div>
+{% endblock %}
