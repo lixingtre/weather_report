@@ -1,0 +1,29 @@
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: weather-report
+  namespace: lixing
+spec:
+  selector:
+    matchLabels:
+      app: weather-report
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: weather-reportl
+        descheduler: "1"
+    spec:
+      nodeSelector:
+        haslocalssd: "true"
+      containers:
+      - name: weather-report
+        image: asia-northeast1-docker.pkg.dev/project-lixing/registry-lixing/weather-report-api:20240306a
+        ports:
+          - containerPort: 8000
+          - containerPort: 80
+        env:
+        - name: DEBUG_FLAG
+          value: "false"
+        - name: WEATHER_API_URL
+          value: "http://api.weatherapi.com/v1/current.json?key=3b6c52e8be3847e5ada82923240603&q="
