@@ -1,0 +1,28 @@
+version: '3'
+services:
+  weather-report:
+    build: ./
+    #image: weather_report_pj_weather-report:latest
+    hostname: lixing
+    ports:
+      - '40088:8000'
+      - '40087:80'
+    volumes:
+      #SMART共通MOUNT
+      - 'log:/home/trial/LOG'
+      - 'aplog:/home/trial/AP/LOG'
+      - 'tmp:/tmp/'
+      - 'vartmp:/var/tmp/'
+    environment:
+      - WEATHER_API_URL=http://api.weatherapi.com/v1/current.json?key=3b6c52e8be3847e5ada82923240603&q=
+      - DEV_FLAG='false'
+networks:
+  default:
+    external:
+      name: dev_smart
+
+volumes:
+  log:
+  aplog:
+  tmp:
+  vartmp:
