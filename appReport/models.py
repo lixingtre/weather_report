@@ -14,7 +14,7 @@ class City_master(models.Model):
             )
         ],
     )
-    city_name = models.TextField(verbose_name="CityName", max_length=50)
+    country = models.TextField(verbose_name="Country", max_length=50)
 
     def __str__(self):
         return self.user_name
@@ -32,7 +32,7 @@ class City_weather(models.Model):
         verbose_name="City",
     )
 
-    weather_information = models.TextField(verbose_name="weather information of city", max_length=50)
+    weather_information = models.TextField(verbose_name="weather information of city", max_length=500)
     date = models.DateField(auto_now_add=True, verbose_name="Date")
     
 
