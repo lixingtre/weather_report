@@ -121,3 +121,33 @@ USE_TZ = True
 
 STATIC_URL = '/static_report/'
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
+ALLOWED_HOSTS = ['*']
+
+if os.environ.get("DEV_FLAG", "false").lower() == "true":
+    LOG_FILENAME = str(BASE_DIR) + "/logs/django_errorlog"
+else:
+    LOG_FILENAME = "/home/trial/AP/LOG/django_errorlog"
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "standard": {
+            "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d [%(pathname)s %(lineno)d] %(message)s"
+        },
+    },
+    "handlers": {
+        "errorlog": {
+            "level": "ERROR",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOG_FILENAME,
+            # 'filename': "/opt/containerlog",
+            "maxBytes": 1024 * 1024 * 5,  # 5M
+            "backupCount": 5,
+            "formatter": "standard",
+        },
+    },
+    "loggers": {
+        "django": {"level": "ERROR", "handlers": ["errorlog"]},
+    },
+}
