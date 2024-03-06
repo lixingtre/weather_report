@@ -1,0 +1,75 @@
+name: Build and Deploy to GKE
+
+on:
+  push:
+    tags:
+      - weather-report-api.202*
+
+# Environment variables available to all jobs and steps in this workflow
+env:
+  GITHUB_SHA: ${{ github.sha }}
+  IMAGE: tec-portal-web
+  GITHUB_TAG: ${{ github.ref }}
+jobs:
+  setup-build-publish-deploy:
+    name: Setup, Build, Publish, and Deploy
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    # Setup gcloud CLI
+    - uses: 'google-github-actions/auth@v1'
+      with:
+        # version: '270.0.0'
+        credentials_json: ${{ secrets.GKE_SA_KEY }}
+
+    # Configure docker to use the gcloud command-line tool as a credential helper
+    - run: |
+        # Set up docker to authenticate
+        # via gcloud command-line tool.
+        gcloud auth configure-docker
+
+    # Fetch tag & Build  & push
+    - name: Fetch the latest tag and Build and Push the image to Google Container Registry
+      run: |
+        export LATEST_TAG=`echo ${GITHUB_TAG}|sed 's/refs\/tags\///g'`
+
+        sed -i 's/dockerhub.tre/asia.gcr.io/g' ./weather_report/Dockerfile
+
+        docker build -t $IMAGE:"$LATEST_TAG" \
+          --build-arg GITHUB_SHA="$GITHUB_SHA" \
+          --build-arg GITHUB_REF="$GITHUB_REF" ./weather_report
+
+    - name: Configure AWS credentials and push Docker image
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        ECR_REGISTRY: 183305774881.dkr.ecr.ap-northeast-1.amazonaws.com
+        CICD_KEY: ${{ secrets.CICD_KEY }}
+      run: |
+        aws configure set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}
+        aws configure set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}
+        aws configure set region ap-northeast-1
+        aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+        export LATEST_TAG=`echo ${GITHUB_TAG}|sed 's/refs\/tags\///g'`
+        docker tag $IMAGE:$LATEST_TAG $ECR_REGISTRY/$IMAGE:$LATEST_TAG
+        docker push $ECR_REGISTRY/$IMAGE:$LATEST_TAG
+
+        #yamls modify
+        mkdir -p ~/.ssh
+        echo '-----BEGIN RSA PRIVATE KEY-----' > ~/.ssh/id_rsa
+        echo "${CICD_KEY}"                     >>~/.ssh/id_rsa
+        echo '-----END RSA PRIVATE KEY-----'   >>~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        git clone --depth=1 git@github.com:lixingtre/weather_report.git
+        cd weather_report/
+        sed -i 's/'"$IMAGE"':.*/'"$IMAGE"':'"$LATEST_TAG"'/' deployment.yaml
+        git config --global user.email "li_xing@163.com"
+        git config --global user.name "lixing"
+        git add portal_for_tec.yaml
+        git commit -m "yamls auto modify: my django project"
+        git push origin master
+        exit 0
